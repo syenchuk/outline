@@ -645,7 +645,7 @@ describe("GET /.well-known/oauth-protected-resource", () => {
     expect(res.status).toEqual(200);
     const body = await res.json();
     expect(body.resource).toEqual(body.authorization_servers[0]);
-    expect(body.resource_name).toEqual("Outline");
+    expect(body.resource_name).toEqual(env.APP_NAME);
     expect(body.authorization_servers).toHaveLength(1);
     expect(body.scopes_supported).toEqual(["read", "write"]);
     expect(body.bearer_methods_supported).toEqual(["header"]);
@@ -657,7 +657,7 @@ describe("GET /.well-known/oauth-protected-resource", () => {
     expect(res.status).toEqual(200);
     const body = await res.json();
     expect(body.resource).toEqual(`${body.authorization_servers[0]}/mcp`);
-    expect(body.resource_name).toEqual("Outline");
+    expect(body.resource_name).toEqual(env.APP_NAME);
     expect(body.authorization_servers).toHaveLength(1);
   });
 
