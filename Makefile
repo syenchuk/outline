@@ -1,11 +1,11 @@
 up:
 	docker compose up -d redis postgres
-	yarn install-local-ssl
 	yarn install --immutable
 	yarn dev:watch
 
 build:
-	docker compose build --pull outline
+	docker build -f Dockerfile.base -t outlinewiki/outline-base .
+	docker build -t outlinewiki/outline .
 
 test:
 	docker compose up -d postgres

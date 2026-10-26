@@ -1,0 +1,48 @@
+name: Publish image
+
+# Builds the image and publishes it to GitHub Container Registry as
+# ghcr.io/<owner>/outline, tagged with the commit and, for releases, the version.
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Docker meta
+        id: meta
+        uses: docker/metadata-action@v6
+        with:
+          images: ghcr.io/${{ github.repository_owner }}/outline
+          tags: |
+            type=sha
+            type=ref,event=tag
+
+      - uses: docker/login-action@v4
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      # Both images are built with the default Docker driver so that the app
+      # image finds the base image in the local image store.
+      - name: Build base image
+        run: docker build -f Dockerfile.base -t outlinewiki/outline-base .
+
+      - name: Build and push
+        uses: docker/build-push-action@v7
+        with:
+          context: .
+          file: Dockerfile
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
