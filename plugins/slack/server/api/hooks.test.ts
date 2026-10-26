@@ -1,5 +1,6 @@
 import { randomString } from "@shared/random";
 import { IntegrationService, IntegrationType } from "@shared/types";
+import serverEnv from "@server/env";
 import type { Document, User } from "@server/models";
 import {
   Integration,
@@ -346,7 +347,7 @@ describe("#hooks.slack", () => {
     expect(body.response_type).toEqual("ephemeral");
     expect(body.blocks.length).toEqual(1);
     expect(body.blocks[0].text.text).toContain(
-      "It looks like you haven’t linked your Outline account to Slack yet"
+      `It looks like you haven’t linked your ${serverEnv.APP_NAME} account to Slack yet`
     );
   });
 
