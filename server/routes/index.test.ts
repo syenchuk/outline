@@ -23,14 +23,14 @@ describe("/s/:id", () => {
     const res = await server.get(`/s/${share.id}`);
     const body = await res.text();
     expect(res.status).toEqual(404);
-    expect(body).toContain("<title>Outline</title>");
+    expect(body).toContain(`<title>${env.APP_NAME}</title>`);
   });
 
   it("should return standard title in html when share does not exist", async () => {
     const res = await server.get(`/s/junk`);
     const body = await res.text();
     expect(res.status).toEqual(404);
-    expect(body).toContain("<title>Outline</title>");
+    expect(body).toContain(`<title>${env.APP_NAME}</title>`);
   });
 
   it("should return standard title in html when document is deleted", async () => {
@@ -43,7 +43,7 @@ describe("/s/:id", () => {
     const res = await server.get(`/s/${share.id}`);
     const body = await res.text();
     expect(res.status).toEqual(404);
-    expect(body).toContain("<title>Outline</title>");
+    expect(body).toContain(`<title>${env.APP_NAME}</title>`);
   });
 
   it("should return document title in html when loading published share", async () => {
