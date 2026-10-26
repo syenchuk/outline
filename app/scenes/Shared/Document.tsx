@@ -60,7 +60,7 @@ function SharedDocument({ document }: Props) {
         readOnly
       />
       {showBranding ? (
-        <Branding href="//www.getoutline.com?ref=sharelink" />
+        <Branding href="//freezbee.fr" />
       ) : null}
     </>
   );
