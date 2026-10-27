@@ -20,6 +20,7 @@ import { renderApp, renderShare } from "./app";
 import discovery from "./discovery";
 import { renderEmbed } from "./embeds";
 import errors from "./errors";
+import { renderFile } from "./file";
 
 const koa = new Koa();
 const router = new Router();
@@ -137,6 +138,8 @@ router.get(
 );
 router.get("/s/:shareId/doc/:documentSlug", shareDomains(), renderShare);
 router.get("/s/:shareId/{*path}", shareDomains(), renderShare);
+
+router.get("/file/:id/:name", renderFile);
 
 router.get("/embeds/gitlab", renderEmbed);
 router.get("/embeds/github", renderEmbed);

@@ -23,6 +23,7 @@ import {
   BeforeUpdate,
 } from "sequelize-typescript";
 import { errToString } from "@shared/utils/error";
+import env from "@server/env";
 import { ValidationError } from "@server/errors";
 import FileStorage from "@server/storage/files";
 import { ValidateKey } from "@server/validation";
@@ -131,6 +132,17 @@ class Attachment extends IdModel<
    */
   get canonicalUrl() {
     return encodeURI(FileStorage.getUrlForKey(this.key));
+  }
+
+  /**
+   * Get a stable URL that never expires and can be indexed by search engines.
+   * Only valid for attachments that are not private.
+   */
+  get publicUrl() {
+    if (env.FILE_STORAGE !== "local") {
+      return this.canonicalUrl;
+    }
+    return `/file/${this.id}/${encodeURIComponent(this.name)}`;
   }
 
   /**
