@@ -15,6 +15,7 @@ import { Hour } from "@shared/utils/time";
 import env from "@server/env";
 import { allowFraming, allowScriptSrc } from "@server/middlewares/csp";
 import { Integration } from "@server/models";
+import type { Collection, Document } from "@server/models";
 import { DocumentHelper } from "@server/models/helpers/DocumentHelper";
 import IntegrationHelper from "@server/models/helpers/IntegrationHelper";
 import presentEnv from "@server/presenters/env";
@@ -50,6 +51,49 @@ function formatChildDocumentsAsMarkdown(
   });
 
   return `\n\n---\n\n**Documents**\n\n${lines.join("\n")}`;
+}
+
+/**
+ * Formats navigation tree children as an HTML list of links, so that crawlers
+ * which do not run scripts can discover the child pages of a share.
+ *
+ * @param children Array of navigation nodes
+ * @param baseUrl Base URL for generating links
+ * @returns Formatted HTML string
+ */
+function formatChildDocumentsAsHtml(
+  children: NavigationNode[],
+  baseUrl: string
+): string {
+  if (!children || children.length === 0) {
+    return "";
+  }
+
+  const items = children.map(
+    (child) =>
+      `<li><a href="${escape(baseUrl + child.url)}">${escape(child.title)}</a></li>`
+  );
+
+  return `<nav><ul>${items.join("")}</ul></nav>`;
+}
+
+/**
+ * Returns the navigation node of the page being rendered, which lists its
+ * child documents.
+ *
+ * @param document The shared document, if any.
+ * @param collection The collection containing the document, or shared as a whole.
+ * @param sharedTree The navigation tree of the share.
+ * @returns The navigation node, if found.
+ */
+function getCurrentNode(
+  document: Document | null | undefined,
+  collection: Collection | null | undefined,
+  sharedTree: NavigationNode | null | undefined
+) {
+  return document
+    ? (collection?.getDocumentTree(document.id) ?? sharedTree)
+    : sharedTree;
 }
 
 const readIndexFile = async (): Promise<Buffer> => {
@@ -297,9 +341,7 @@ export const renderShare = async (ctx: Context, next: Next) => {
 
     // Append child documents list if the share includes them
     if (share?.includeChildDocuments && sharedTree) {
-      const node = document
-        ? (collection?.getDocumentTree(document.id) ?? sharedTree)
-        : sharedTree;
+      const node = getCurrentNode(document, collection, sharedTree);
 
       if (node?.children?.length) {
         markdown += formatChildDocumentsAsMarkdown(
@@ -334,7 +376,7 @@ export const renderShare = async (ctx: Context, next: Next) => {
         ? team.name
         : undefined;
 
-  const content =
+  let content =
     document || collection
       ? await DocumentHelper.toHTML(document || collection!, {
           includeStyles: false,
@@ -343,6 +385,14 @@ export const renderShare = async (ctx: Context, next: Next) => {
           signedUrls: Hour.seconds,
         })
       : undefined;
+
+  // Link to the child pages so crawlers can discover them without scripts
+  if (content !== undefined && share?.includeChildDocuments && sharedTree) {
+    content += formatChildDocumentsAsHtml(
+      getCurrentNode(document, collection, sharedTree)?.children ?? [],
+      share.canonicalUrl
+    );
+  }
 
   const canonicalUrl = share
     ? `${share.canonicalUrl}${

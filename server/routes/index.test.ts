@@ -238,6 +238,52 @@ describe("/s/:id", () => {
     expect(body).toContain(`[${child2.title}]`);
   });
 
+  it("should link child documents in the html when includeChildDocuments is true", async () => {
+    const parent = await buildDocument();
+    const child = await buildDocument({
+      teamId: parent.teamId,
+      collectionId: parent.collectionId,
+      parentDocumentId: parent.id,
+      title: "Child <Document>",
+    });
+
+    const share = await buildShare({
+      documentId: parent.id,
+      teamId: parent.teamId,
+      includeChildDocuments: true,
+    });
+
+    const res = await server.get(`/s/${share.id}`);
+    const body = await res.text();
+
+    expect(res.status).toEqual(200);
+    expect(body).toContain(
+      `<a href="${env.URL}/s/${share.id}${child.url}">Child &lt;Document&gt;</a>`
+    );
+  });
+
+  it("should not link child documents in the html when includeChildDocuments is false", async () => {
+    const parent = await buildDocument();
+    const child = await buildDocument({
+      teamId: parent.teamId,
+      collectionId: parent.collectionId,
+      parentDocumentId: parent.id,
+      title: "Child Document",
+    });
+
+    const share = await buildShare({
+      documentId: parent.id,
+      teamId: parent.teamId,
+      includeChildDocuments: false,
+    });
+
+    const res = await server.get(`/s/${share.id}`);
+    const body = await res.text();
+
+    expect(res.status).toEqual(200);
+    expect(body).not.toContain(`/s/${share.id}${child.url}`);
+  });
+
   it("should not include child documents list in markdown when includeChildDocuments is false", async () => {
     const parent = await buildDocument();
     await buildDocument({
