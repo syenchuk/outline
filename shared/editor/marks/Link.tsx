@@ -97,7 +97,6 @@ export default class Link extends Mark<LinkOptions> {
           title: node.attrs.title,
           href: sanitizeUrl(node.attrs.href),
           class: "use-hover-preview",
-          rel: "noopener noreferrer nofollow",
         },
         0,
       ],

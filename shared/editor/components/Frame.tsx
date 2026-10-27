@@ -94,11 +94,7 @@ const Frame = ({
         <Bar>
           {icon} <Title>{title}</Title>
           {canonicalUrl && (
-            <Open
-              href={sanitizeUrl(canonicalUrl)}
-              target="_blank"
-              rel="noopener noreferrer"
-            >
+            <Open href={sanitizeUrl(canonicalUrl)} target="_blank">
               <OpenIcon size={18} /> Open
             </Open>
           )}

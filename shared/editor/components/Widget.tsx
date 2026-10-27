@@ -36,7 +36,6 @@ export default function Widget(props: Props) {
       className={className}
       target="_blank"
       href={sanitizeUrl(props.href)}
-      rel="noreferrer nofollow"
       onDoubleClick={props.onDoubleClick}
       onMouseDown={props.onMouseDown}
       onClick={props.onClick}

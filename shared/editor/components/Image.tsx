@@ -252,7 +252,6 @@ const Image = (props: Props) => {
             // Do not show hover preview when the image is selected
             className={!isSelected ? "use-hover-preview" : ""}
             target="_blank"
-            rel="noopener noreferrer nofollow"
           >
             <img
               ref={handleImageRef}

@@ -57,7 +57,7 @@ const downloadVideo = async (src: string, title: string | null) => {
     document.body.removeChild(link);
     setTimeout(() => URL.revokeObjectURL(url));
   } catch {
-    window.open(src, "_blank", "noopener,noreferrer");
+    window.open(src, "_blank");
   }
 };
 

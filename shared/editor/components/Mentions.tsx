@@ -295,7 +295,6 @@ export const MentionURL = (props: IssueUrlProps) => {
       })}
       href={url}
       target="_blank"
-      rel="noopener noreferrer nofollow"
     >
       <Flex align="center" gap={6}>
         {unfurl.faviconUrl ? (
@@ -383,7 +382,6 @@ export const MentionIssue = observer((props: IssuePrProps) => {
       })}
       href={attrs.href as string}
       target="_blank"
-      rel="noopener noreferrer nofollow"
     >
       <Flex align="center" gap={6}>
         <IssueStatusIcon size={14} service={service} state={issue.state} />
@@ -463,7 +461,6 @@ export const MentionProject = observer((props: ProjectProps) => {
       })}
       href={attrs.href as string}
       target="_blank"
-      rel="noopener noreferrer nofollow"
     >
       <Flex align="center" gap={6}>
         {project.avatarUrl ? (
@@ -546,13 +543,7 @@ export const MentionPullRequest = observer((props: IssuePrProps) => {
   const pullRequest = unfurl as UnfurlResponse[UnfurlResourceType.PR];
 
   return (
-    <a
-      {...attrs}
-      {...sharedProps}
-      href={attrs.href as string}
-      target="_blank"
-      rel="noopener noreferrer nofollow"
-    >
+    <a {...attrs} {...sharedProps} href={attrs.href as string} target="_blank">
       <Flex align="center" gap={6}>
         <PullRequestIcon size={14} state={pullRequest.state} />
         <Flex align="center" gap={4}>
