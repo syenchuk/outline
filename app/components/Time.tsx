@@ -1,5 +1,6 @@
 import { Suspense } from "react";
-import { dateToRelative } from "@shared/utils/date";
+import { dateLocale, dateToRelative } from "@shared/utils/date";
+import useUserLocale from "~/hooks/useUserLocale";
 import type { Props as LocaleTimeProps } from "~/components/LocaleTime";
 import lazyWithRetry from "@shared/utils/lazyWithRetry";
 
@@ -10,7 +11,9 @@ type Props = LocaleTimeProps & {
 };
 
 function Time({ onClick, ...props }: Props) {
+  const userLocale = useUserLocale();
   const content = dateToRelative(Date.parse(props.dateTime), {
+    locale: dateLocale(userLocale),
     addSuffix: props.addSuffix,
     shorten: props.shorten,
   });
