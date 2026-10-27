@@ -48,7 +48,7 @@ There are several kinds of files. A change record describes a change made to the
 1. **Contexte** – short context.
 2. **Problème**
 3. **Objectif** – the goal sought.
-4. **Solution proposée**
+4. **Solution proposée** – optionally with an "Alternatives non retenues" subsection listing the other approaches considered and why they were not chosen.
 5. **Spécification technique** – general idea, concise analysis of impacted components (with file links), then the implementation roadmap.
 6. **Instructions de déploiement** – an ordered todo list (`- [ ]`). When needed, split the change into iterative steps so production is never broken (e.g. ship backward-compatible code first, migrate, then clean up).
 
