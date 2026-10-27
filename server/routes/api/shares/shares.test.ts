@@ -2,7 +2,12 @@ import queryString from "query-string";
 import { randomString } from "@shared/random";
 import { CollectionPermission } from "@shared/types";
 import { createContext } from "@server/context";
-import { UserMembership, Share, ShareSubscription } from "@server/models";
+import {
+  Document,
+  UserMembership,
+  Share,
+  ShareSubscription,
+} from "@server/models";
 import {
   buildUser,
   buildDocument,
@@ -1452,6 +1457,21 @@ describe("#shares.sitemap", () => {
     const res = await server.get(`/api/shares.sitemap?id=${share.id}`);
     expect(res.status).toEqual(200);
     expect(res.headers.get("content-type")).toContain("application/xml");
+  });
+
+  it("should include the last modification date of documents", async () => {
+    const share = await buildShare({
+      allowIndexing: true,
+      includeChildDocuments: true,
+    });
+    const document = await Document.findByPk(share.documentId!);
+    const res = await server.get(`/api/shares.sitemap?id=${share.id}`);
+    const body = await res.text();
+    expect(res.status).toEqual(200);
+    expect(body).toContain(
+      `<lastmod>${document!.updatedAt.toISOString()}</lastmod>`
+    );
+    expect(body).not.toContain("changefreq");
   });
 
   it("should return 404 when share does not allow indexing", async () => {

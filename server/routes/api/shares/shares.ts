@@ -4,6 +4,7 @@ import type { FindOptions, WhereAttributeHash, WhereOptions } from "sequelize";
 import { Op } from "sequelize";
 import { randomString } from "@shared/random";
 import { errToId } from "@shared/utils/error";
+import { flattenTree } from "@shared/utils/tree";
 import { QueryNotices, TeamPreference } from "@shared/types";
 import {
   AuthenticationError,
@@ -36,7 +37,7 @@ import type { APIContext } from "@server/types";
 import { RateLimiterStrategy } from "@server/utils/RateLimiter";
 import { getTeamFromContext } from "@server/utils/passport";
 import { QueryHelper } from "@server/storage/QueryHelper";
-import { navigationNodeToSitemap } from "@server/utils/sitemap";
+import { entriesToSitemap } from "@server/utils/sitemap";
 import pagination from "../middlewares/pagination";
 import * as T from "./schema";
 import {
@@ -470,8 +471,24 @@ router.get(
       ? `https://${share.domain}`
       : `${share.team.url ?? process.env.URL}/s/${id}`;
 
+    const nodes = flattenTree(sharedTree);
+    const documents = nodes.length
+      ? await Document.unscoped().findAll({
+          attributes: ["id", "updatedAt"],
+          where: { id: nodes.map((node) => node.id), teamId: share.teamId },
+        })
+      : [];
+    const updatedAtById = new Map(
+      documents.map((document) => [document.id, document.updatedAt])
+    );
+
     ctx.set("Content-Type", "application/xml");
-    ctx.body = navigationNodeToSitemap(sharedTree, baseUrl);
+    ctx.body = entriesToSitemap(
+      nodes.map((node) => ({
+        url: `${baseUrl}${node.url}`,
+        lastmod: updatedAtById.get(node.id),
+      }))
+    );
   }
 );
 

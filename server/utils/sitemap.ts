@@ -1,35 +1,26 @@
 import { escape } from "es-toolkit/compat";
-import type { NavigationNode } from "@shared/types";
+
+/** A page listed in a sitemap. */
+export interface SitemapEntry {
+  /** The absolute URL of the page. */
+  url: string;
+  /** The date the page was last modified, if known. */
+  lastmod?: Date;
+}
 
 /**
- * Converts a navigation tree to a sitemap XML string, by traversing the nodes.
+ * Converts a list of pages to a sitemap XML string.
  *
- * @param tree The navigation tree to convert.
- * @param baseUrl The base URL to prepend to each node's URL.
+ * @param entries The pages to list.
  * @returns The sitemap XML string.
  */
-export function navigationNodeToSitemap(
-  tree: NavigationNode | undefined | null,
-  baseUrl: string
-): string {
-  const urls: string[] = [];
-
-  function collectUrls(node: NavigationNode, urls: string[]) {
-    urls.push(`${baseUrl}${node.url}`);
-    if (node.children) {
-      node.children.forEach((child) => collectUrls(child, urls));
-    }
-  }
-
-  if (tree) {
-    collectUrls(tree, urls);
-  }
-
-  // Build XML
-  return `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${urls
+export function entriesToSitemap(entries: SitemapEntry[]): string {
+  return `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${entries
     .map(
-      (url) =>
-        `  <url><loc>${escape(url)}</loc><changefreq>weekly</changefreq></url>`
+      ({ url, lastmod }) =>
+        `  <url><loc>${escape(url)}</loc>${
+          lastmod ? `<lastmod>${lastmod.toISOString()}</lastmod>` : ""
+        }</url>`
     )
     .join("\n")}\n</urlset>`;
 }
