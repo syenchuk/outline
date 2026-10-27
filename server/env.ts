@@ -881,10 +881,17 @@ export class Environment {
     this.toOptionalString(environment.SEARCH_PROVIDER) ?? "postgres";
 
   /**
-   * The product name
+   * The product name, displayed in the interface, page titles and emails.
    */
   @Public
-  public APP_NAME = "FreezBee";
+  public APP_NAME = this.toOptionalString(environment.APP_NAME) ?? "Outline";
+
+  /**
+   * The link target of the branding shown on public shares. Defaults to the
+   * URL of this instance when not set.
+   */
+  @Public
+  public BRANDING_URL = this.toOptionalString(environment.BRANDING_URL);
 
   /**
    * Gravity constant for time decay in popularity scoring. Higher values cause

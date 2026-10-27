@@ -9,6 +9,7 @@ import { useDocumentContext } from "~/components/DocumentContext";
 import { useTeamContext } from "~/components/TeamContext";
 import useCurrentUser from "~/hooks/useCurrentUser";
 import useQuery from "~/hooks/useQuery";
+import env from "~/env";
 import useShare from "@shared/hooks/useShare";
 import { parseDomain } from "@shared/utils/domains";
 
@@ -59,9 +60,7 @@ function SharedDocument({ document }: Props) {
         tocPosition={tocPosition}
         readOnly
       />
-      {showBranding ? (
-        <Branding href="//freezbee.fr" />
-      ) : null}
+      {showBranding ? <Branding href={env.BRANDING_URL} /> : null}
     </>
   );
 }
