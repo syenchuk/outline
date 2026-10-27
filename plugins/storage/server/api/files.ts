@@ -1,7 +1,5 @@
 import JWT from "jsonwebtoken";
 import Router from "@koa/router";
-import mime from "mime-types";
-import contentDisposition from "content-disposition";
 import { bytesToHumanReadable } from "@shared/utils/files";
 import env from "@server/env";
 import {
@@ -18,12 +16,10 @@ import validate from "@server/middlewares/validate";
 import { Attachment } from "@server/models";
 import AttachmentHelper from "@server/models/helpers/AttachmentHelper";
 import { authorize } from "@server/policies";
-import FileStorage from "@server/storage/files";
-import type LocalStorage from "@server/storage/files/LocalStorage";
 import type { APIContext } from "@server/types";
 import { RateLimiterStrategy } from "@server/utils/RateLimiter";
 import { getJWTPayload } from "@server/utils/jwt";
-import { ByteRangeHelper } from "../utils/ByteRangeHelper";
+import { serveFile } from "../utils/serveFile";
 import * as T from "./schema";
 
 const router = new Router();
@@ -110,7 +106,6 @@ router.get(
     const forceDownload = !!ctx.input.query.download;
     const isSignedRequest = !!ctx.input.query.sig;
     const { isPublicBucket, fileName } = AttachmentHelper.parseKey(key);
-    const cacheHeader = "max-age=604800, immutable";
     const attachment = await Attachment.findByKey(key);
 
     // Skip authorization for public bucket, signed requests, or public-read ACL attachments
@@ -127,60 +122,12 @@ router.get(
       authorize(actor, "read", attachment);
     }
 
-    const contentType =
-      attachment?.contentType ||
-      (fileName ? mime.lookup(fileName) : undefined) ||
-      "application/octet-stream";
-
-    if (contentType === "application/pdf") {
-      ctx.remove("X-Frame-Options");
-    }
-
-    ctx.set("Accept-Ranges", "bytes");
-    ctx.set("Access-Control-Allow-Origin", "*");
-    ctx.set("Cache-Control", cacheHeader);
-    ctx.set("Content-Type", contentType);
-    ctx.set(
-      "Content-Security-Policy",
-      // Safari will not render PDFs in an embed if the sandbox directive is used, so we use a
-      // tight CSP in that case. For all other file types we use the strict sandbox directive
-      // which blocks all content from being loaded and rendered.
-      contentType === "application/pdf"
-        ? "default-src 'self'; object-src 'self'; base-uri 'none';"
-        : "sandbox"
-    );
-    ctx.set(
-      "Content-Disposition",
-      contentDisposition(fileName, {
-        type: forceDownload
-          ? "attachment"
-          : FileStorage.getContentDispositionType(contentType),
-      })
-    );
-
-    // Handle byte range requests
-    // https://developer.mozilla.org/en-US/docs/Web/HTTP/Range_requests
-    const stats = await (FileStorage as LocalStorage).stat(key);
-    const range = ByteRangeHelper.parse(ctx.headers.range, stats.size);
-
-    if (range === ByteRangeHelper.unsatisfiable) {
-      ctx.status = 416;
-      ctx.set("Content-Range", `bytes */${stats.size}`);
-      return;
-    }
-
-    if (range) {
-      ctx.status = 206;
-      ctx.set("Content-Length", String(range.end - range.start + 1));
-      ctx.set(
-        "Content-Range",
-        `bytes ${range.start}-${range.end}/${stats.size}`
-      );
-    } else {
-      ctx.set("Content-Length", String(stats.size));
-    }
-
-    ctx.body = await FileStorage.getFileStream(key, range);
+    await serveFile(ctx, {
+      key,
+      fileName,
+      contentType: attachment?.contentType,
+      forceDownload,
+    });
   }
 );
 
