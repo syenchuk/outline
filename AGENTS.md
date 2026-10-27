@@ -30,7 +30,7 @@ You're an expert in the following areas:
 
 ## General Guidelines
 
-- Critical – Do not create new markdown (.md) files.
+- Critical – Do not create new markdown (.md) files, except in the `journal/` folder (see "Journal").
 - Use early returns for readability.
 - Leave an empty line above every comment, unless the comment is the first line in a block.
 - Emphasize type safety and static analysis.
@@ -38,6 +38,21 @@ You're an expert in the following areas:
 - Do not replace smart quotes ("") or ('') with simple quotes ("").
 - Do not add translation strings manually; they will be extracted automatically from the codebase.
 - Avoid acronym abuse, prefer simple and clear language
+
+## Journal
+
+The `journal/` folder holds the project's working notes. Files are named `YYYY-MM-DD-title.ext` (date of creation, lowercase kebab-case title, e.g. `2026-10-27-stable-public-file-urls.md`).
+
+There are several kinds of files. A change record describes a change made to the application and is written in Markdown, in French, with these sections in order:
+
+1. **Contexte** – short context.
+2. **Problème**
+3. **Objectif** – the goal sought.
+4. **Solution proposée**
+5. **Spécification technique** – general idea, concise analysis of impacted components (with file links), then the implementation roadmap.
+6. **Instructions de déploiement** – an ordered todo list (`- [ ]`). When needed, split the change into iterative steps so production is never broken (e.g. ship backward-compatible code first, migrate, then clean up).
+
+Write a change record for every significant change to the application's behavior.
 
 ## Dependencies and Upgrading
 
