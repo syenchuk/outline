@@ -55,7 +55,7 @@
       "required": true
     },
     "ENABLE_UPDATES": {
-      "value": "true",
+      "value": "false",
       "required": true
     },
     "URL": {

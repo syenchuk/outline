@@ -8,7 +8,7 @@ import Redis from "@server/storage/redis";
 import packageInfo from "../../package.json";
 import fetch from "./fetch";
 
-const UPDATES_URL = "https://updates.getoutline.com";
+const DEFAULT_UPDATES_URL = "https://updates.getoutline.com";
 const UPDATES_KEY = "UPDATES_KEY";
 
 /**
@@ -40,7 +40,7 @@ export async function checkUpdates() {
   await Redis.defaultClient.del(UPDATES_KEY);
 
   try {
-    const response = await fetch(UPDATES_URL, {
+    const response = await fetch(env.UPDATES_URL ?? DEFAULT_UPDATES_URL, {
       method: "POST",
       headers: {
         Accept: "application/json",

@@ -394,13 +394,22 @@ export class Environment {
   );
 
   /**
-   * Should the installation send anonymized statistics to the maintainers.
-   * Defaults to true.
+   * Should the installation check for updates and send anonymized statistics
+   * (user, team, collection and document counts, version and a hashed
+   * installation id) to UPDATES_URL. Opt-in, defaults to false.
    */
   @IsBoolean()
   public TELEMETRY = this.toBoolean(
-    environment.ENABLE_UPDATES ?? environment.TELEMETRY ?? "true"
+    environment.ENABLE_UPDATES ?? environment.TELEMETRY ?? "false"
   );
+
+  /**
+   * The endpoint used for the update check when TELEMETRY is enabled. Leave
+   * empty to use the upstream default, or point to a community endpoint.
+   */
+  @IsOptional()
+  @IsUrl({ require_tld: false, require_protocol: true })
+  public UPDATES_URL = this.toOptionalString(environment.UPDATES_URL);
 
   // Third-party services
 
