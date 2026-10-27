@@ -470,10 +470,12 @@ export class ProsemirrorHelper extends SharedProsemirrorHelper {
 
     await Promise.all(
       attachments.map(async (attachment) => {
-        const signedUrl = await FileStorage.getSignedUrl(
-          attachment.key,
-          expiresIn
-        );
+        // Public attachments keep a stable URL that never expires
+        const signedUrl = attachment.isPrivate
+          ? await FileStorage.getSignedUrl(attachment.key, expiresIn)
+          : attachment.publicUrl.startsWith("/")
+            ? `${env.URL}${attachment.publicUrl}`
+            : attachment.publicUrl;
         mapping.set(attachment.redirectUrl, signedUrl);
       })
     );

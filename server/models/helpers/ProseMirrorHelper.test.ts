@@ -11,7 +11,11 @@ import { createContext } from "@server/context";
 import { parser, schema, serializer } from "@server/editor";
 import env from "@server/env";
 import { Attachment } from "@server/models";
-import { buildProseMirrorDoc, buildUser } from "@server/test/factories";
+import {
+  buildAttachment,
+  buildProseMirrorDoc,
+  buildUser,
+} from "@server/test/factories";
 import type { MentionAttrs } from "./ProsemirrorHelper";
 import { ProsemirrorHelper } from "./ProsemirrorHelper";
 
@@ -2046,6 +2050,45 @@ describe("ProsemirrorHelper", () => {
           userId: "user-1",
         })
       ).toThrow(/cannot be commented/);
+    });
+  });
+
+  describe("signAttachmentUrls", () => {
+    it("should use a stable url for public attachments and sign private ones", async () => {
+      const user = await buildUser();
+      const publicAttachment = await buildAttachment({
+        teamId: user.teamId,
+        userId: user.id,
+        acl: "public-read",
+      });
+      const privateAttachment = await buildAttachment({
+        teamId: user.teamId,
+        userId: user.id,
+        acl: "private",
+      });
+      const doc = buildProseMirrorDoc([
+        {
+          type: "paragraph",
+          content: [
+            {
+              type: "image",
+              attrs: { src: publicAttachment.redirectUrl, alt: "a" },
+            },
+            {
+              type: "image",
+              attrs: { src: privateAttachment.redirectUrl, alt: "b" },
+            },
+          ],
+        },
+      ]);
+
+      const json = await ProsemirrorHelper.signAttachmentUrls(doc, user.teamId);
+      const srcs = JSON.stringify(json);
+
+      expect(srcs).toContain(`${env.URL}${publicAttachment.publicUrl}`);
+      expect(srcs).not.toContain(publicAttachment.redirectUrl);
+      expect(srcs).not.toContain(privateAttachment.redirectUrl);
+      expect(srcs).not.toContain(`/file/${privateAttachment.id}`);
     });
   });
 });
