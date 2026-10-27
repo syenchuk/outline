@@ -1,3 +1,4 @@
+import env from "@server/env";
 // @vitest-isolate true
 import { createContext } from "@server/context";
 import {
@@ -215,6 +216,24 @@ describe("TextHelper", () => {
       expect(urls).toHaveLength(3);
       expect(urls[0]).not.toEqual(urls[1]);
       expect(urls[2]).toEqual(urls[0]);
+    });
+
+    it("should use a stable url for public attachments", async () => {
+      const user = await buildUser();
+      const attachment = await buildAttachment({
+        teamId: user.teamId,
+        userId: user.id,
+        acl: "public-read",
+      });
+      const text = `<img src="${attachment.redirectUrl}">`;
+
+      const result = await TextHelper.attachmentsToSignedUrls(
+        text,
+        user.teamId
+      );
+
+      expect(result).toEqual(`<img src="${env.URL}${attachment.publicUrl}">`);
+      expect(result).not.toContain("sig=");
     });
 
     it("should not sign attachments from another team", async () => {

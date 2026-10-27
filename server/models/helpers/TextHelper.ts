@@ -43,10 +43,12 @@ export class TextHelper {
 
     await Promise.all(
       attachments.map(async (attachment) => {
-        const signedUrl = await FileStorage.getSignedUrl(
-          attachment.key,
-          expiresIn
-        );
+        // Public attachments keep a stable URL that never expires
+        const signedUrl = attachment.isPrivate
+          ? await FileStorage.getSignedUrl(attachment.key, expiresIn)
+          : attachment.publicUrl.startsWith("/")
+            ? `${env.URL}${attachment.publicUrl}`
+            : attachment.publicUrl;
 
         text = text.replace(
           new RegExp(escapeRegExp(attachment.redirectUrl), "g"),

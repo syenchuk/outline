@@ -343,6 +343,10 @@ const handleAttachmentsRedirect = async (
   if (attachment.isStoredInPublicBucket) {
     ctx.set("Cache-Control", `max-age=604800, immutable`);
     ctx.redirect(attachment.canonicalUrl);
+  } else if (!attachment.isPrivate) {
+    // Public attachments have a stable URL so that it can be indexed
+    ctx.set("Cache-Control", `max-age=604800, immutable`);
+    ctx.redirect(attachment.publicUrl);
   } else {
     ctx.set(
       "Cache-Control",

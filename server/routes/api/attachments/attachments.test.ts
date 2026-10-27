@@ -661,6 +661,7 @@ describe("#attachments.redirect", () => {
     const attachment = await buildAttachment({
       teamId: user.teamId,
       userId: user.id,
+      acl: "private",
     });
     const res = await server.post("/api/attachments.redirect", user, {
       body: {
@@ -755,7 +756,7 @@ describe("#attachments.redirect", () => {
     expect(res.headers.get("location")).toContain(attachment.canonicalUrl);
   });
 
-  it("should return a redirect for a public-read attachment without authentication (not in public bucket)", async () => {
+  it("should redirect a public-read attachment to its stable url without authentication (not in public bucket)", async () => {
     const attachment = await buildAttachment({
       acl: "public-read",
     });
@@ -766,7 +767,8 @@ describe("#attachments.redirect", () => {
       redirect: "manual",
     });
     expect(res.status).toEqual(302);
-    expect(res.headers.get("location")).toContain(await attachment.signedUrl);
+    expect(res.headers.get("location")).toContain(attachment.publicUrl);
+    expect(res.headers.get("location")).not.toContain("sig=");
   });
 
   it("should not return a redirect for a private attachment belonging to a document user does not have access to", async () => {

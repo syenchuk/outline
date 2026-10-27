@@ -27,6 +27,7 @@ interface ServeFileOptions {
  */
 export async function serveFile(ctx: Context, options: ServeFileOptions) {
   const { key, fileName, forceDownload, canonicalUrl } = options;
+
   const contentType =
     options.contentType ||
     (fileName ? mime.lookup(fileName) : undefined) ||
