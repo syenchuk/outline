@@ -3,6 +3,7 @@ import path from "node:path";
 import { formatRFC7231 } from "date-fns";
 import Koa from "koa";
 import Router from "@koa/router";
+import { Op } from "sequelize";
 import { send } from "@koa/send";
 import { languages } from "@shared/i18n";
 import { TeamPreference } from "@shared/types";
@@ -11,7 +12,8 @@ import { Day } from "@shared/utils/time";
 import env from "@server/env";
 import { NotFoundError } from "@server/errors";
 import shareDomains from "@server/middlewares/shareDomains";
-import { Integration } from "@server/models";
+import { Integration, Share } from "@server/models";
+import { sitemapsToIndex } from "@server/utils/sitemap";
 import { getSessionRedirectUrl } from "@server/utils/authentication";
 import { getTeamFromContext } from "@server/utils/passport";
 import { isInvalidAppPath } from "@server/utils/url";
@@ -158,9 +160,34 @@ router.get("/doc/:documentSlug", async (ctx, next) => {
 router.get("/sitemap.xml", async (ctx) => {
   if (ctx.state?.rootShare) {
     ctx.redirect(`/api/shares.sitemap?id=${ctx.state?.rootShare.id}`);
-  } else {
-    ctx.status = 404;
+    return;
   }
+
+  const team = await getTeamFromContext(ctx, { includeOAuthState: false });
+  if (!team?.sharing) {
+    ctx.status = 404;
+    return;
+  }
+
+  const shares = await Share.unscoped().findAll({
+    attributes: ["id", "urlId"],
+    where: {
+      teamId: team.id,
+      published: true,
+      allowIndexing: true,
+      revokedAt: { [Op.is]: null },
+      domain: { [Op.is]: null },
+    },
+    order: [["createdAt", "ASC"]],
+  });
+
+  ctx.set("Content-Type", "application/xml");
+  ctx.body = sitemapsToIndex(
+    shares.map(
+      (share) =>
+        `${ctx.request.URL.origin}/api/shares.sitemap?id=${share.urlId ?? share.id}`
+    )
+  );
 });
 
 // Client routes that render without an authenticated session.

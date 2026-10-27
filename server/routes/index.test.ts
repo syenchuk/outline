@@ -11,7 +11,7 @@ import {
   buildIntegration,
   buildTeam,
 } from "@server/test/factories";
-import { getTestServer } from "@server/test/support";
+import { getTestServer, setSelfHosted } from "@server/test/support";
 
 const server = getTestServer();
 
@@ -472,6 +472,41 @@ describe("/locales/:lng.json", () => {
   it("should return 404 for an unknown language", async () => {
     const res = await server.get("/locales/xx_XX.json");
     expect(res.status).toEqual(404);
+  });
+});
+
+describe("/sitemap.xml and /robots.txt", () => {
+  it("should reference the sitemap in robots.txt", async () => {
+    const res = await server.get("/robots.txt");
+    const body = await res.text();
+    expect(res.status).toEqual(200);
+    expect(body).toMatch(/^Sitemap: https?:\/\/.+\/sitemap\.xml$/m);
+  });
+
+  it("should list only indexable shares in the sitemap index", async () => {
+    setSelfHosted();
+    const team = await buildTeam({ domain: new URL(env.URL).hostname });
+    const indexed = await buildDocument({ teamId: team.id });
+    const hidden = await buildDocument({ teamId: team.id });
+    const indexedShare = await buildShare({
+      documentId: indexed.id,
+      teamId: team.id,
+      allowIndexing: true,
+    });
+    const hiddenShare = await buildShare({
+      documentId: hidden.id,
+      teamId: team.id,
+      allowIndexing: false,
+    });
+
+    const res = await server.get("/sitemap.xml");
+    const body = await res.text();
+
+    expect(res.status).toEqual(200);
+    expect(res.headers.get("content-type")).toContain("application/xml");
+    expect(body).toContain("<sitemapindex");
+    expect(body).toContain(`shares.sitemap?id=${indexedShare.id}`);
+    expect(body).not.toContain(hiddenShare.id);
   });
 });
 
