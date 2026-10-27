@@ -6,8 +6,8 @@
  * @param origin the origin of the request, used to build the sitemap URL.
  * @returns the robots.txt content.
  */
-export const robotsResponse = (origin: string): string => `
-User-agent: *
+export const robotsResponse = (origin: string): string =>
+  `User-agent: *
 Allow: /api/shares.sitemap
 Allow: /api/attachments.redirect
 Disallow: /api/
